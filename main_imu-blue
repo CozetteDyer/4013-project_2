@@ -1,0 +1,139 @@
+#include <SoftwareSerial.h>
+#include <Wire.h> //
+#include <Adafruit_LSM6DS33.h> // 6-DoF Accelerometer and Gyroscope Sensor
+#include <Adafruit_LIS3MDL.h> // magnetometer
+
+Adafruit_LSM6DS33 accelerometer; // accel and gyro 
+Adafruit_LIS3MDL magnetometer; // magnetometer
+
+const int rx = 0;
+const int tx =  1;
+
+
+SoftwareSerial bluetooth(rx, tx);
+//SoftwareSerial gps(dummy1, dummy2);
+//SoftwareSerial imu(dummy3, dummy4);
+
+// void IMU ()
+// {
+//   // By default, the I2C address is 0x6A.  
+//   // If you add a jumper from DO to 3.3V, the address will change to 0x6B
+
+//     // finish
+  
+// }
+
+// void GPS()
+// {
+//     // finish
+// }
+
+void setup() {
+  // put your setup code here, to run once:
+
+  //gps.begin(9600);
+  imu.begin(115200);
+ // bluetooth.begin(9600);
+
+//   delay(100);
+//   bluetooth.println("Let's Start!");
+
+//   delay(100);
+
+  //                                                                                IMU Set-up
+
+    bool accelerometer_success, magnetometer_success;
+
+  // hardware I2C mode, can pass in address & alt Wire
+
+    accelerometer_success = accelerometer.begin_I2C();
+    magnetometer_success = magnetometer.begin_I2C();
+
+    if (!accelerometer_success){
+    Serial.println("Failed to find accelerometer chip");
+    }
+    if (!magnetometer_success){
+    Serial.println("Failed to find magnetometer chip");
+    }
+    if (!(accelerometer_success && magnetometer_success)) {
+    while (1) {
+        delay(1); // 10
+        }
+    }
+
+    // Double check these values!!                                                    *FINISH*
+    accelerometer.setAccelRange(LSM6DS_ACCEL_RANGE_2_G);
+    accelerometer.setAccelDataRate(LSM6DS_RATE_12_5_HZ);
+    accelerometer.setGyroRange(LSM6DS_GYRO_RANGE_250_DPS );
+    accelerometer.setGyroDataRate(LSM6DS_RATE_12_5_HZ);
+
+    magnetometer.setDataRate(LIS3MDL_DATARATE_155_HZ);
+    magnetometer.setRange(LIS3MDL_RANGE_4_GAUSS);
+    magnetometer.setPerformanceMode(LIS3MDL_MEDIUMMODE); // should we use low power?
+    magnetometer.setOperationMode(LIS3MDL_CONTINUOUSMODE);
+
+    magnetometer.setIntThreshold(500);
+    magnetometer.configInterrupt(false, false, true, // enable z axis
+                                true, // polarity
+                                false, // don't latch
+                                true); // enabled!
+
+}
+
+
+
+void loop() {
+  // put your main code here, to run repeatedly:
+//   if (bluetooth.available())
+//   {
+//     char c = (char)bluetooth.read();
+//     Serial.write(c);
+
+//   }
+
+
+    // IMU 
+    sensors_event_t accel, gyro, mag, temp;
+
+    accelerometer.getEvent(&accel, &gyro, &temp);
+    magnetometer.getEvent(&mag);
+
+
+    //// Final Results into 1 string 
+
+    /* Display the results (acceleration is measured in m/s^2) */
+    Serial.print("\t\tAccel X: ");
+    Serial.print(accel.acceleration.x, 4);
+    Serial.print(" \tY: ");
+    Serial.print(accel.acceleration.y, 4);
+    Serial.print(" \tZ: ");
+    Serial.print(accel.acceleration.z, 4);
+    // Serial.println(" \tm/s^2 ");
+
+    /* Display the results (rotation is measured in rad/s) */
+    Serial.print("\t\tGyro  X: ");
+    Serial.print(gyro.gyro.x, 4);
+    Serial.print(" \tY: ");
+    Serial.print(gyro.gyro.y, 4);
+    Serial.print(" \tZ: ");
+    Serial.print(gyro.gyro.z, 4);
+    // Serial.println(" \tradians/s ");
+
+    /* Display the results (magnetic field is measured in uTesla) */
+    Serial.print(" \t\tMag   X: ");
+    Serial.print(mag.magnetic.x, 4);
+    Serial.print(" \tY: ");
+    Serial.print(mag.magnetic.y, 4);
+    Serial.print(" \tZ: ");
+    Serial.print(mag.magnetic.z, 4);
+    // Serial.println(" \tuTesla ");
+
+    Serial.print("\t\tTemp   :\t\t\t\t\t");
+    Serial.print(temp.temperature);
+    // Serial.println(" \tdeg C");
+    //  Serial.println();
+
+    delay(1000);
+
+ 
+}
