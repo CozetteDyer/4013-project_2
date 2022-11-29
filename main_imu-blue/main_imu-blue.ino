@@ -1,5 +1,5 @@
 #include <SoftwareSerial.h>
-#include <Wire.h> //
+#include <Wire.h> // for I2C for IMU
 #include <Adafruit_LSM6DS33.h> // 6-DoF Accelerometer and Gyroscope Sensor
 #include <Adafruit_LIS3MDL.h> // magnetometer
 
@@ -32,7 +32,8 @@ void setup() {
   // put your setup code here, to run once:
 
   //gps.begin(9600);
-  imu.begin(115200);
+    Serial.begin(11520);
+  //imu.begin(115200);
  // bluetooth.begin(9600);
 
 //   delay(100);
@@ -42,6 +43,7 @@ void setup() {
 
   //                                                                                IMU Set-up
 
+    Serial.println("CODE: main_imu-blue!");
     bool accelerometer_success, magnetometer_success;
 
   // hardware I2C mode, can pass in address & alt Wire
@@ -52,15 +54,19 @@ void setup() {
     if (!accelerometer_success){
     Serial.println("Failed to find accelerometer chip");
     }
-    if (!magnetometer_success){
-    Serial.println("Failed to find magnetometer chip");
-    }
-    if (!(accelerometer_success && magnetometer_success)) {
-    while (1) {
-        delay(1); // 10
-        }
-    }
 
+    /* FOR some reson this doesnt work. Teensy cant seem to find the chip, but we still get data. Not sure if data is correct 
+     *  Need to revisit!!
+     */
+//    if (!magnetometer_success){
+//    Serial.println("Failed to find magnetometer chip");
+//    }
+//    if (!(accelerometer_success && magnetometer_success)) {
+//    while (1) {
+//        delay(1); // 10
+//        }
+//    }
+    Serial.println("LSM6DS and LIS3MDL Found!");
     // Double check these values!!                                                    *FINISH*
     accelerometer.setAccelRange(LSM6DS_ACCEL_RANGE_2_G);
     accelerometer.setAccelDataRate(LSM6DS_RATE_12_5_HZ);
@@ -78,7 +84,7 @@ void setup() {
                                 false, // don't latch
                                 true); // enabled!
 
-}
+} // end of void setup()
 
 
 
@@ -94,46 +100,43 @@ void loop() {
 
     // IMU 
     sensors_event_t accel, gyro, mag, temp;
-
     accelerometer.getEvent(&accel, &gyro, &temp);
     magnetometer.getEvent(&mag);
+    float ax, ay, az;
+    float gx, gy, gz;
+    float mx, my, mz;
+    float tempV;
+    String accelString, gyroString, magString;
 
 
-    //// Final Results into 1 string 
+    /* I2C is 8-bit data bus, where address can be 7 bit or 10 bit, 
+       you can't send more than 8 bit at a time */
 
     /* Display the results (acceleration is measured in m/s^2) */
-    Serial.print("\t\tAccel X: ");
-    Serial.print(accel.acceleration.x, 4);
-    Serial.print(" \tY: ");
-    Serial.print(accel.acceleration.y, 4);
-    Serial.print(" \tZ: ");
-    Serial.print(accel.acceleration.z, 4);
-    // Serial.println(" \tm/s^2 ");
+    ax = accel.acceleration.x; // Accel X
+    ay = accel.acceleration.y; // Accel Y
+    az = accel.acceleration.z; // Accel Z
+    accelString = "AX = " + ax + "\tAY = " + ay + "\tAZ = " + az; 
+    Serial.println(accelString);
 
     /* Display the results (rotation is measured in rad/s) */
-    Serial.print("\t\tGyro  X: ");
-    Serial.print(gyro.gyro.x, 4);
-    Serial.print(" \tY: ");
-    Serial.print(gyro.gyro.y, 4);
-    Serial.print(" \tZ: ");
-    Serial.print(gyro.gyro.z, 4);
-    // Serial.println(" \tradians/s ");
+    gx = gyro.gyro.x;
+    gy = gyro.gyro.y;
+    gz = gyro.gyro.z;
+    gyroString = "GX = " + gx + "\tGY = " + gy + "\tGZ = " + gz; 
+    Serial.println(gyroString);
 
     /* Display the results (magnetic field is measured in uTesla) */
-    Serial.print(" \t\tMag   X: ");
-    Serial.print(mag.magnetic.x, 4);
-    Serial.print(" \tY: ");
-    Serial.print(mag.magnetic.y, 4);
-    Serial.print(" \tZ: ");
-    Serial.print(mag.magnetic.z, 4);
-    // Serial.println(" \tuTesla ");
+    mx = mag.magnetic.x;
+    my = mag.magnetic.y;
+    mz = mag.magnetic.z;
+    magString = "MX = " + mx + "\tMY = " + my + "\tMZ = " + mz; 
+    Serial.println(magString);
 
-    Serial.print("\t\tTemp   :\t\t\t\t\t");
-    Serial.print(temp.temperature);
-    // Serial.println(" \tdeg C");
-    //  Serial.println();
-
+    /* Display the results (magnetic field is measured in uTesla) */
+    tempV = temp.temperature;
+    Serial.println("temp " + tempV);
     delay(1000);
 
  
-}
+} // end of void loop()

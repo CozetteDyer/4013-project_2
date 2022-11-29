@@ -16,6 +16,7 @@
 
 // To use with the LSM6DS33+LIS3MDL breakout, uncomment these two lines
 // and comment out the lines referring to the LSM6DSOX above
+#include <Wire.h>
 #include <Adafruit_LSM6DS33.h>
 Adafruit_LSM6DS33 lsm6ds;
 
@@ -39,7 +40,8 @@ void setup(void) {
 
   Serial.println("Adafruit LSM6DS+LIS3MDL test!");
 
-  bool lsm6ds_success, lis3mdl_success;
+  bool lsm6ds_success;
+  bool lis3mdl_success;
 
   // hardware I2C mode, can pass in address & alt Wire
 
@@ -47,16 +49,16 @@ void setup(void) {
   lis3mdl_success = lis3mdl.begin_I2C();
 
   if (!lsm6ds_success){
-    Serial.println("Failed to find LSM6DS chip");
+    Serial.println("1. Failed to find LSM6DS chip");
   }
-  if (!lis3mdl_success){
-    Serial.println("Failed to find LIS3MDL chip");
-  }
-  if (!(lsm6ds_success && lis3mdl_success)) {
-    while (1) {
-      delay(10);
-    }
-  }
+//  if (!lis3mdl_success){
+//    Serial.println("2. Failed to find LIS3MDL chip");
+//  }
+//  if (!(lsm6ds_success && lis3mdl_success)) {
+//    while (1) {
+//      delay(10);
+//    }
+//  }
 
   Serial.println("LSM6DS and LIS3MDL Found!");
 
@@ -270,4 +272,3 @@ void loop() {
   delay(1000);
 
 }
-

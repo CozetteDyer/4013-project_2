@@ -16,6 +16,7 @@
 // By default, the I2C address is 0x6A.  
 // If you add a jumper from DO to 3.3V, the address will change to 0x6B
 
+#include <Wire.h>
 #include <Adafruit_LSM6DS33.h> // 6-DoF Accelerometer and Gyroscope Sensor
 Adafruit_LSM6DS33 lsm6ds;
 
@@ -26,11 +27,11 @@ void setup(void) {
   Serial.begin(115200); // baud rate of I2C??
   while (!Serial) // gives time for serial port to connect
     delay(10); // will pause Zero, Leonardo, etc until serial console opens
- 
+
+
+ Serial.println("CODE: IMU_V1");
   bool lsm6ds_success, lis3mdl_success;
-
   // hardware I2C mode, can pass in address & alt Wire
-
   lsm6ds_success = lsm6ds.begin_I2C();
   lis3mdl_success = lis3mdl.begin_I2C();
 
