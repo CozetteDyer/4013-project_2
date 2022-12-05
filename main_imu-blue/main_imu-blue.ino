@@ -43,21 +43,24 @@ void IMU () {
     ay = String(accel.acceleration.y, 4); // Accel Y
     az = String(accel.acceleration.z, 4); // Accel Z
     accelString = "AX = " + ax + "\tAY = " + ay + "\tAZ = " + az; 
-    Serial.println(accelString);
-
+    //Serial.println(accelString);
+    writeSD(ax, ay, az);
+    
     /* Display the results (rotation is measured in rad/s) */
     gx = String(gyro.gyro.x, 4);
     gy = String(gyro.gyro.y, 4);
     gz = String(gyro.gyro.z, 4);
-    gyroString = "GX = " + gx + "\tGY = " + gy + "\tGZ = " + gz; 
-    Serial.println(gyroString);
+    gyroString = "GX = " + gx + "\tGY = " + gy + "\tGZ = " + gz;
+    writeSD(gx, gy, gz);
+    //Serial.println(gyroString);
 
     /* Display the results (magnetic field is measured in uTesla) */
     mx = String(mag.magnetic.x, 4);
     my = String(mag.magnetic.y, 4);
     mz = String(mag.magnetic.z, 4);
-    magString = "MX = " + mx + "\tMY = " + my + "\tMZ = " + mz; 
-    Serial.println(magString);
+    magString = "MX = " + mx + "\tMY = " + my + "\tMZ = " + mz;     
+    writeSD(mx, my, mz);
+    //Serial.println(magString);
 
     /* Display the results (magnetic field is measured in uTesla) */
     tempV = String(temp.temperature, 2); // 2 decimal places
@@ -70,27 +73,27 @@ void GPS() {
     // finish
 }
 
-void writeSD() {
-    sdFile = SD.open("test.txt", FILE_WRITE); // change file name ***
+void writeSD(String d1, String d2, String d3) {
+    sdFile = SD.open("data_test.txt", FILE_WRITE); // change file name ***
+    //Serial.print("Writing to data_test.txt. . .");
 
     // if the file opened okay, write to it:
     if (sdFile) {
-        Serial.print("Writing to test.txt...");
-        sdFile.println("test 1, 2, 3.");
+        sdFile.print(d1 + "," + d2 + "," + d3 + ",");
         // close the file:
         sdFile.close();
-        Serial.println("writing complete.");
     } 
     
     else { // if the file didn't open, print an error:
         Serial.println("error opening test.txt");
     }
+    //Serial.println("writing complete.");
 } // end of write to SD card function
 
 void readSD() {   
-    sdFile = SD.open("test.txt"); // re-open the file for reading
+    sdFile = SD.open("data_test.txt"); // re-open the file for reading
+    //Serial.println("data_test.txt:");
     if (sdFile) {
-        Serial.println("test.txt:");
         // read from the file until there's nothing else in it:
         while (sdFile.available()) {
             Serial.write(sdFile.read());
@@ -101,14 +104,14 @@ void readSD() {
     
     else {
         // if the file didn't open, print an error:
-        Serial.println("error opening test.txt");
+        Serial.println("\nerror opening test.txt\n");
     }
 
 } // read from SD card function 
 
 void setup() {
     // put your setup code here, to run once:
-    Serial.println("CODE: main_sd-imu!");
+    Serial.println("CODE: main_sd-imu!\n");
 
     //gps.begin(9600);
     Serial.begin(11520); // imu.begin(115200);
@@ -129,7 +132,7 @@ void setup() {
     Serial.println("Failed to find accelerometer chip");
     }
 
-    Serial.println("IMU found!");
+    //Serial.println("IMU found!");
     // Double check these values!!                                                    *FINISH*
     accelerometer.setAccelRange(LSM6DS_ACCEL_RANGE_2_G);
     accelerometer.setAccelDataRate(LSM6DS_RATE_12_5_HZ);
@@ -162,10 +165,10 @@ void setup() {
     Serial.print("Initializing SD card...");
 
     if (!SD.begin(chipSelect)) {
-        Serial.println("initialization failed");
+        Serial.println("SD initialization failed");
         return;
     }
-    Serial.println("initialization done.");
+    //Serial.println("SD initialization done.");
 
 // *********************************************************************     SD card setup
 
@@ -183,7 +186,6 @@ void loop() {
 
 
     IMU(); // get data from IMU
-    writeSD();
     readSD();
 
 
