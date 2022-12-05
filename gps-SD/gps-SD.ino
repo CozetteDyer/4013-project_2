@@ -18,7 +18,8 @@ uint32_t  timer = millis();
 
 File sdFile; // create SD card instance
 const int chipSelect = BUILTIN_SDCARD; // using built in SD card in Teensy
-//
+
+
 void writeSD(String d1, String d2, String d3) {
    sdFile = SD.open("GPS_test.txt", FILE_WRITE); // change file name ***
    //Serial.print("Writing to IMU_test.txt. . .");
