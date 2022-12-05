@@ -1,14 +1,26 @@
-#include <SoftwareSerial.h>
-#include <Wire.h> // for I2C for IMU
+#include <SoftwareSerial.h> // serial monitor
 #include <Adafruit_LSM6DS33.h> // 6-DoF Accelerometer and Gyroscope Sensor
 #include <Adafruit_LIS3MDL.h> // magnetometer
 #include <SD.h> // SD card lib
 #include <SPI.h> // for SD card
+#include <Adafruit_GPS.h> // GPS baby
 
-File sdFile;
-const int chipSelect = BUILTIN_SDCARD;
+File sdFile; // create SD card instance
+const int chipSelect = BUILTIN_SDCARD; // using built in SD card in Teensy
+
 Adafruit_LSM6DS33 accelerometer; // accel and gyro 
 Adafruit_LIS3MDL magnetometer; // magnetometer
+
+#define GPSSerial Serial5 // using serial port 5
+Adafruit_GPS gps(&GPSSerial);
+#define GPSECHO false
+
+String gps_Date;
+String gps_Time;
+String gps_Longitude;
+String gps_Lattitude; 
+String gps_Satallites;
+String gps_Elevation;
 
 const int rx = 0;
 const int tx =  1;
@@ -70,8 +82,38 @@ void IMU () {
 }   // end of imu()
 
 void GPS() {
-    // finish
-}
+    // read data from the GPS in the 'main loop'
+    char c = gps.read();
+    // if you want to debug, this is a good time to do it!
+    if (GPSECHO)
+    if (c) Serial.print(c);
+
+    // if a sentence is received, we can check the checksum, parse it...
+    if (gps.newNMEAreceived()) {
+        // a tricky thing here is if we print the NMEA sentence, or data
+        // we end up not listening and catching other sentences!
+        // so be very wary if using OUTPUT_ALLDATA and trying to print out data
+
+        Serial.print(gps.lastNMEA()); // this also sets the newNMEAreceived() flag to false
+        if (!gps.parse(gps.lastNMEA())) // this also sets the newNMEAreceived() flag to false
+            return; // we can fail to parse a sentence in which case we should just wait for anotherchar c = GPS.read();
+    } // end of GPS.newNMEAreceived loop 
+
+    if (millis() - timer > 2000) {
+        timer = millis(); // reset the timer
+        Serial.print("Fix: "); Serial.print((int)gps.fix);
+        Serial.print(" quality: "); Serial.println((int)gps.fixquality);
+        if (gps.fix) {
+            gps_Time = String(gps.hour) + ":" + String(gps.minute) + ":" + String(gps.seconds);
+            gps_Date = String(gps.month) + "/" + String(gps.day) + "/" + String(gps.year);
+            gps_Satallites = String((int)gps.satellites);
+            gps_Lattitude = String(gps.lattitude) + String(gps.lat);
+            gps_Longitude = String(gps.longitude) + String(gps.lon);
+            gps_Altitude = String(gps.altitude);
+        } // end of GPS.fix loop
+    } // end of millis() - timer
+} // end of GPS functions
+
 
 void writeSD(String d1, String d2, String d3) {
     sdFile = SD.open("data_test.txt", FILE_WRITE); // change file name ***
@@ -89,6 +131,7 @@ void writeSD(String d1, String d2, String d3) {
     }
     //Serial.println("writing complete.");
 } // end of write to SD card function
+
 
 void readSD() {   
     sdFile = SD.open("data_test.txt"); // re-open the file for reading
@@ -109,19 +152,20 @@ void readSD() {
 
 } // read from SD card function 
 
+
 void setup() {
     // put your setup code here, to run once:
     Serial.println("CODE: main_sd-imu!\n");
 
     //gps.begin(9600);
-    Serial.begin(11520); // imu.begin(115200);
+    Serial.begin(115200); // imu.begin(115200);
   
     // bluetooth.begin(9600);
     //   delay(100);
     //   bluetooth.println("Let's Start!");
     //   delay(100);
 
-    // *********************************************************************     IMU-setup
+    // ****** IMU ********************************************************     IMU-setup
     bool accelerometer_success; //, magnetometer_success;
 
     // hardware I2C mode, can pass in address & alt Wire
@@ -151,8 +195,20 @@ void setup() {
                                 true); // enabled!
     // *********************************************************************     end of IMU - setup
     
+
+    // ****** GPS *****************************************************     GPS - setup
+    // Serial.begin(115200); // same as IMU
+    Serial.println("Adafruit GPS library basic parsing test!");
+    gps.begin(9600);
+    gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+    gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+    gps.sendCommand(PGCMD_ANTENNA);
+    delay(1000);
+    GPSSerial.println(PMTK_Q_RELEASE);
+    // ********************************************************************     end of GPS - setup
     
-    // *********************************************************************     SD card setup
+    
+    // ****** SD Card ******************************************************     SD card setup
     SPI.setMOSI(7);  // Audio shield has MOSI on pin 7
     SPI.setSCK(14);  // Audio shield has SCK on pin 14
 
@@ -171,7 +227,6 @@ void setup() {
     //Serial.println("SD initialization done.");
 
 // *********************************************************************     SD card setup
-
 } // end of void setup()
 
 
@@ -186,8 +241,9 @@ void loop() {
 
 
     IMU(); // get data from IMU
-    readSD();
+    GPS();
 
+    readSD();
 
  
 } // end of void loop()
