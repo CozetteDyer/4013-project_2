@@ -77,12 +77,9 @@ void getGPS() {
 
     // if a sentence is received, we can check the checksum, parse it...
     if (GPS.newNMEAreceived()) {
-    // a tricky thing here is if we print the NMEA sentence, or data
-    // we end up not listening and catching other sentences!
-    // so be very wary if using OUTPUT_ALLDATA and trying to print out data
-    Serial.print(GPS.lastNMEA()); // this also sets the newNMEAreceived() flag to false
-    if (!GPS.parse(GPS.lastNMEA())) // this also sets the newNMEAreceived() flag to false
-        return; // we can fail to parse a sentence in which case we should just wait for anotherchar c = GPS.read();
+        Serial.print(GPS.lastNMEA()); // this also sets the newNMEAreceived() flag to false
+        if (!GPS.parse(GPS.lastNMEA())) // this also sets the newNMEAreceived() flag to false
+            return; // we can fail to parse a sentence in which case we should just wait for anotherchar c = GPS.read();
     } 
 
     if (millis() - timer > 2000) {   // approximately every 2 seconds or so, print out the current stats
@@ -108,8 +105,8 @@ void getGPS() {
 
 
 void writeIMU_SD(String d1, String d2, String d3) {
-    sdFile = SD.open("data_test.txt", FILE_WRITE); // change file name ***
-    //Serial.print("Writing to data_test.txt. . .");
+    sdFile = SD.open("IMU_test.txt", FILE_WRITE); // change file name ***
+    //Serial.print("Writing to IMU_test.txt. . .");
 
     // if the file opened okay, write to it:
     if (sdFile) {
@@ -119,14 +116,14 @@ void writeIMU_SD(String d1, String d2, String d3) {
     } 
     
     else { // if the file didn't open, print an error:
-        Serial.println("error opening test.txt");
+        Serial.println("error opening IMU.txt");
     }
     //Serial.println("writing complete.");
 } // end of write IMU --> SD card function
 
 
 void readIMU_SD() {   
-    sdFile = SD.open("data_test.txt"); // re-open the file for reading
+    sdFile = SD.open("IMU_test.txt"); // re-open the file for reading
     //Serial.println("data_test.txt:");
     if (sdFile) {
         // read from the file until there's nothing else in it:
@@ -139,14 +136,14 @@ void readIMU_SD() {
     
     else {
         // if the file didn't open, print an error:
-        Serial.println("\nerror opening test.txt\n");
+        Serial.println("\nerror opening IMU.txt\n");
     }
 
 } // read from IMU -> SD card function 
 
 
 void setup() {
-    Serial.println("CODE: main_sd-imu!\n");
+    Serial.println("CODE: main\n");
     Serial.begin(115200); // imu.begin(115200);
   
     // bluetooth.begin(9600);
@@ -155,13 +152,17 @@ void setup() {
     //   delay(100);
 
     // ****** IMU ********************************************************     IMU-setup
-    bool accelerometer_success; //, magnetometer_success;
+    bool accelerometer_success, magnetometer_success;
 
     // hardware I2C mode, can pass in address & alt Wire
     accelerometer_success = accelerometer.begin_I2C();
-    // magnetometer_success = magnetometer.begin_I2C();
+    magnetometer_success = magnetometer.begin_I2C();
 
     if (!accelerometer_success){
+    Serial.println("Failed to find accelerometer chip");
+    }
+
+    if (!magnetometer_success){
     Serial.println("Failed to find accelerometer chip");
     }
 
@@ -198,8 +199,6 @@ void setup() {
 
     
     // ****** SD Card ******************************************************     SD card setup
-
-
     // Open serial communications and wait for port to open:
     Serial.begin(9600);
     while (!Serial) {
@@ -224,7 +223,7 @@ void writeGPS_SD(String d1, String d2, String d3) {
    } 
    
    else { // if the file didn't open, print an error:
-       Serial.println("error opening IMU.txt");
+       Serial.println("error opening GPS.txt");
    }
    //Serial.println("writing complete.");
 } // end of write GPS -> SD card function
@@ -232,14 +231,14 @@ void writeGPS_SD(String d1, String d2, String d3) {
 void readGPS_SD() {   
    sdFile = SD.open("GPS_test.txt"); // re-open the file for reading
    if (sdFile) {
-     // read from the file until there's nothing else in it:
-     while (sdFile.available()) {
-       Serial.write(sdFile.read());
-     } // end of while
-     sdFile.close(); // close the file
+    // read from the file until there's nothing else in it:
+        while (sdFile.available()) {
+            Serial.write(sdFile.read());
+        } // end of while
+    sdFile.close(); // close the file
    } 
    else { // if the file didn't open, print an error:
-     Serial.println("\nerror opening test.txt\n");
+        Serial.println("\nerror opening GPS.txt\n");
    }
 } // read from GPS -> SD card function 
 
