@@ -63,6 +63,8 @@ void IMU () {
     // *********************************************************************     end of IMU
 }   // end of imu()
 
+//("Accel X, " + "Accel Y, " + "Accel Z, " + "Gyro X, " + "Gryo Y, " + "Gyro Z, " + "Magn X, " + "Magn Y, " + "Magn Z, ");
+
 
 void writeSD(String d1, String d2, String d3) {
     sdFile = SD.open("IMU_test.txt", FILE_WRITE); // change file name ***

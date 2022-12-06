@@ -47,8 +47,9 @@ void getIMU () {
     ay = String(accel.acceleration.y, 4); // Accel Y
     az = String(accel.acceleration.z, 4); // Accel Z
     accelString = "AX = " + ax + "\tAY = " + ay + "\tAZ = " + az; 
-    Serial.println(accelString);
     writeIMU_SD(ax, ay, az);
+    //Serial.println(accelString);
+    
     
     /* Display the results (rotation is measured in rad/s) */
     gx = String(gyro.gyro.x, 4);
@@ -56,7 +57,7 @@ void getIMU () {
     gz = String(gyro.gyro.z, 4);
     gyroString = "GX = " + gx + "\tGY = " + gy + "\tGZ = " + gz;
     writeIMU_SD(gx, gy, gz);
-    Serial.println(gyroString);
+    //Serial.println(gyroString);
 
     /* Display the results (magnetic field is measured in uTesla) */
     mx = String(magn.magnetic.x, 4);
@@ -64,11 +65,11 @@ void getIMU () {
     mz = String(magn.magnetic.z, 4);
     magnString = "MX = " + mx + "\tMY = " + my + "\tMZ = " + mz;     
     writeIMU_SD(mx, my, mz);
-    Serial.println(magnString);
+    //Serial.println(magnString);
 
     /* Display the results (magnetic field is measured in uTesla) */
     tempV = String(temp.temperature, 2); // 2 decimal places
-    Serial.println("temp " + tempV);
+    //Serial.println("temp " + tempV);
     delay(1000);
 }   // end of imu()
 
@@ -95,14 +96,13 @@ void getGPS() {
             gps_latitude = String(GPS.latitude) + String(GPS.lat);
             gps_longitude = String(GPS.longitude) + String(GPS.lon);
             gps_altitude = String(GPS.altitude);
-            Serial.println("SAT:\t" + gps_satellites + "\tLAT:\t" + gps_latitude +"\tLON:\t" + gps_longitude +"\tALT:\t" + gps_altitude );
+            //Serial.println("SAT:\t" + gps_satellites + "\tLAT:\t" + gps_latitude +"\tLON:\t" + gps_longitude +"\tALT:\t" + gps_altitude );
 
             writeGPS_SD(gps_time, gps_date, gps_satellites); 
             writeGPS_SD(gps_latitude, gps_longitude, gps_altitude); 
         } // end of (GPS.fix) loop
     } // end of (millis() - gps_timer > 2000)  loop
 } // end of GPS functions
-
 
 void writeIMU_SD(String d1, String d2, String d3) {
     sdFile = SD.open("IMU_test.txt", FILE_WRITE); // change file name ***
@@ -116,15 +116,14 @@ void writeIMU_SD(String d1, String d2, String d3) {
     } 
     
     else { // if the file didn't open, print an error:
-        Serial.println("error opening IMU.txt");
+        Serial.println("\n\nerror opening IMU.txt\n\n");
     }
     //Serial.println("writing complete.");
 } // end of write IMU --> SD card function
 
-
 void readIMU_SD() {   
     sdFile = SD.open("IMU_test.txt"); // re-open the file for reading
-    //Serial.println("data_test.txt:");
+    Serial.println("\n\nIMU_test!");
     if (sdFile) {
         // read from the file until there's nothing else in it:
         while (sdFile.available()) {
@@ -136,11 +135,76 @@ void readIMU_SD() {
     
     else {
         // if the file didn't open, print an error:
-        Serial.println("\nerror opening IMU.txt\n");
+        Serial.println("\n\nerror opening IMU.txt\n\n");
     }
 
 } // read from IMU -> SD card function 
 
+void writeGPS_SD(String d1, String d2, String d3) {
+   sdFile = SD.open("GPS_test.txt", FILE_WRITE); 
+
+    Serial.println("\n\nGPS_test!");
+
+   if (sdFile) { // if the file opened okay, write to it:
+       sdFile.print(d1 + "," + d2 + "," + d3 + ",");
+       // close the file:
+       sdFile.close();
+   } 
+   
+   else { // if the file didn't open, print an error:
+       Serial.println("\n\nerror opening GPS.txt\n\n");
+   }
+   //Serial.println("writing complete.");
+} // end of write GPS -> SD card function
+
+void readGPS_SD() {   
+   sdFile = SD.open("GPS_test.txt"); // re-open the file for reading
+   if (sdFile) {
+    // read from the file until there's nothing else in it:
+        while (sdFile.available()) {
+            Serial.write(sdFile.read());
+        } // end of while
+    sdFile.close(); // close the file
+   } 
+   else { // if the file didn't open, print an error:
+        Serial.println("\n\nerror opening GPS.txt\n\n");
+   }
+} // read from GPS -> SD card function 
+
+
+void writeSD_headers() {
+
+    SD.remove("IMU_test.txt"); // revomes previous IMU data file
+    SD.remove("GPS_test.txt"); // remove previous GPS data file
+    
+    sdFile = SD.open("IMU_test.txt", FILE_WRITE); // change file name ***
+    //Serial.print("Writing to IMU_test.txt. . .");
+
+    // if the file opened okay, write to it:
+    if (sdFile) {
+        sdFile.print("Accel X, Accel Y, Accel Z, Gyro X, Gyro Y, Gyro Z, Magn X, Magn Y, Magn Z");
+        sdFile.close();
+    } 
+    
+    else { // if the file didn't open, print an error:
+        Serial.println("\n\nerror opening IMU.txt for Header\n\n");
+    }
+
+ // ------------------------------------------------------ GPS
+    sdFile = SD.open("GPS_test.txt", FILE_WRITE); // change file name ***
+    //Serial.print("Writing to GPS_test.txt. . .");
+
+    // if the file opened okay, write to it:
+    if (sdFile) {
+        sdFile.print("Time, Date, Satellites, Latitude, Longitude, Elevation");
+        sdFile.close();
+    } 
+    
+    else { // if the file didn't open, print an error:
+        Serial.println("\n\nerror opening GPS.txt for Header\n\n");
+    }
+
+} // end of write to SD card function --- HEADERS!!
 
 void setup() {
     Serial.println("CODE: main\n");
@@ -159,14 +223,13 @@ void setup() {
     magnetometer_success = magnetometer.begin_I2C();
 
     if (!accelerometer_success){
-    Serial.println("Failed to find accelerometer chip");
+      Serial.println("\n\nFailed to find accelerometer chip\n\n");
     }
 
     if (!magnetometer_success){
-    Serial.println("Failed to find accelerometer chip");
+      Serial.println("\n\nFailed to find accelerometer chip\n\n");
     }
 
-    //Serial.println("IMU found!");
     // Double check these values!!                                                    
     accelerometer.setAccelRange(LSM6DS_ACCEL_RANGE_2_G);
     accelerometer.setAccelDataRate(LSM6DS_RATE_12_5_HZ);
@@ -204,44 +267,15 @@ void setup() {
     while (!Serial) {
         ; // wait for serial port to connect.
     }
-    Serial.print("Initializing SD card...");
+    Serial.print("\n\nInitializing SD card...\n\n");
     if (!SD.begin(chipSelect)) {
-        Serial.println("SD initialization failed");
+        Serial.println("\n\nSD initialization failed\n\n");
         return;
     }
+    writeSD_headers(); //writing headers to SD card
     //Serial.println("SD initialization done.");
 // *********************************************************************     SD card setup
 } // end of void setup()
-
-void writeGPS_SD(String d1, String d2, String d3) {
-   sdFile = SD.open("GPS_test.txt", FILE_WRITE); 
-
-   if (sdFile) { // if the file opened okay, write to it:
-       sdFile.print(d1 + "," + d2 + "," + d3 + ",");
-       // close the file:
-       sdFile.close();
-   } 
-   
-   else { // if the file didn't open, print an error:
-       Serial.println("error opening GPS.txt");
-   }
-   //Serial.println("writing complete.");
-} // end of write GPS -> SD card function
-
-void readGPS_SD() {   
-   sdFile = SD.open("GPS_test.txt"); // re-open the file for reading
-   if (sdFile) {
-    // read from the file until there's nothing else in it:
-        while (sdFile.available()) {
-            Serial.write(sdFile.read());
-        } // end of while
-    sdFile.close(); // close the file
-   } 
-   else { // if the file didn't open, print an error:
-        Serial.println("\nerror opening GPS.txt\n");
-   }
-} // read from GPS -> SD card function 
-
 
 void loop() {
     //   if (bluetooth.available())
@@ -250,11 +284,10 @@ void loop() {
     //     Serial.write(c);
     //   }
 
-
     getIMU(); // get data from IMU
     getGPS(); // get dat from GPS
 
-    //readSD();
+    readIMU_SD();
+    readGPS_SD();
 
- 
 } // end of void loop()
