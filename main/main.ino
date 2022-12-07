@@ -12,7 +12,7 @@ Adafruit_LSM6DS33 accelerometer; // accel and gyro
 Adafruit_LIS3MDL magnetometer; // magnetometer
 
 #define GPSSerial Serial5 // using serial port 5
-Adafruit_GPS GPS(&GPSSerial); // Connect to the GPS on the hardware port
+Adafruit_GPS GPS(&GPSSerial); // Connect to the GPS on the hardware port //GPSSerial
 #define GPSECHO false // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
                       // Set to 'true' if you want to debug and listen to the raw GPS sentences
 String gps_date;
@@ -46,62 +46,48 @@ void getIMU () {
     ax = String(accel.acceleration.x, 4); // Accel X
     ay = String(accel.acceleration.y, 4); // Accel Y
     az = String(accel.acceleration.z, 4); // Accel Z
-    accelString = "AX = " + ax + "\tAY = " + ay + "\tAZ = " + az; 
+    accelString = "\tAX = " + ax + "\t|\tAY = " + ay + "\t|\tAZ = " + az; 
     writeIMU_SD(ax, ay, az);
-    //Serial.println(accelString);
     
     
     /* Display the results (rotation is measured in rad/s) */
     gx = String(gyro.gyro.x, 4);
     gy = String(gyro.gyro.y, 4);
     gz = String(gyro.gyro.z, 4);
-    gyroString = "GX = " + gx + "\tGY = " + gy + "\tGZ = " + gz;
+    gyroString = "\tGX = " + gx + "\t|\tGY = " + gy + "\t|\tGZ = " + gz;
     writeIMU_SD(gx, gy, gz);
-    //Serial.println(gyroString);
 
     /* Display the results (magnetic field is measured in uTesla) */
     mx = String(magn.magnetic.x, 4);
     my = String(magn.magnetic.y, 4);
     mz = String(magn.magnetic.z, 4);
-    magnString = "MX = " + mx + "\tMY = " + my + "\tMZ = " + mz;     
+    magnString = "\tMX = " + mx + "\t|\tMY = " + my + "\t|\tMZ = " + mz;     
     writeIMU_SD(mx, my, mz);
-    //Serial.println(magnString);
 
     /* Display the results (magnetic field is measured in uTesla) */
     tempV = String(temp.temperature, 2); // 2 decimal places
-    //Serial.println("temp " + tempV);
-    delay(1000);
+
+    Serial.println(accelString + "\n" + gyroString + "\n" + magnString + "\n" + "\ttemp = " + tempV + "\n");
+    delay(3000);
 }   // end of imu()
 
 void getGPS() {
-    char c = GPS.read(); // read data from the GPS in the 'main loop'
+    Serial.print("Fix:\t"); Serial.print((int)GPS.fix);
+    Serial.print("\tQuality:\t"); Serial.println((int)GPS.fixquality);
+    if (GPS.fix) { // .fix
+        gps_time = String(GPS.hour) + ":" + String(GPS.minute) + ":" + String(GPS.seconds);
+        gps_date = String(GPS.month) + "/" + String(GPS.day) + "/" + String(GPS.year);
+        Serial.println("\tTIME:\t" + gps_time + "\tDATE:\t" + gps_date);
 
-    // if a sentence is received, we can check the checksum, parse it...
-    if (GPS.newNMEAreceived()) {
-        Serial.print(GPS.lastNMEA()); // this also sets the newNMEAreceived() flag to false
-        if (!GPS.parse(GPS.lastNMEA())) // this also sets the newNMEAreceived() flag to false
-            return; // we can fail to parse a sentence in which case we should just wait for anotherchar c = GPS.read();
-    } 
+        gps_satellites = String((int)GPS.satellites);
+        gps_latitude = String(GPS.latitude) + String(GPS.lat);
+        gps_longitude = String(GPS.longitude) + String(GPS.lon);
+        gps_altitude = String(GPS.altitude);
+        Serial.println("\tSAT:\t" + gps_satellites + "\t|\tLAT:\t" + gps_latitude +"\n\tLON:\t" + gps_longitude +"|\tALT:\t" + gps_altitude);
 
-    if (millis() - timer > 2000) {   // approximately every 2 seconds or so, print out the current stats
-        timer = millis(); // reset the gps_timer
-        Serial.print("Fix:\t"); Serial.print((int)GPS.fix);
-        Serial.print("\t Quality:\t"); Serial.println((int)GPS.fixquality);
-        if (GPS.fix) {
-            gps_time = String(GPS.hour) + ":" + String(GPS.minute) + ":" + String(GPS.seconds);
-            gps_date = String(GPS.month) + "/" + String(GPS.day) + "/" + String(GPS.year);
-            Serial.println("TIME:\t" + gps_date + "\tDATE:\t" + gps_date);
-
-            gps_satellites = String((int)GPS.satellites);
-            gps_latitude = String(GPS.latitude) + String(GPS.lat);
-            gps_longitude = String(GPS.longitude) + String(GPS.lon);
-            gps_altitude = String(GPS.altitude);
-            //Serial.println("SAT:\t" + gps_satellites + "\tLAT:\t" + gps_latitude +"\tLON:\t" + gps_longitude +"\tALT:\t" + gps_altitude );
-
-            writeGPS_SD(gps_time, gps_date, gps_satellites); 
-            writeGPS_SD(gps_latitude, gps_longitude, gps_altitude); 
-        } // end of (GPS.fix) loop
-    } // end of (millis() - gps_timer > 2000)  loop
+        writeGPS_SD(gps_time, gps_date, gps_satellites); 
+        writeGPS_SD(gps_latitude, gps_longitude, gps_altitude); 
+    } // end of (GPS.fix) loop
 } // end of GPS functions
 
 void writeIMU_SD(String d1, String d2, String d3) {
@@ -123,14 +109,14 @@ void writeIMU_SD(String d1, String d2, String d3) {
 
 void readIMU_SD() {   
     sdFile = SD.open("IMU_test.txt"); // re-open the file for reading
-    Serial.println("\n\nIMU_test!");
+    //Serial.println("\nIMU_test!");
     if (sdFile) {
         // read from the file until there's nothing else in it:
         while (sdFile.available()) {
             Serial.write(sdFile.read());
         }
         
-        sdFile.close(); // close the file
+            sdFile.close(); // close the file
         } 
     
     else {
@@ -143,7 +129,7 @@ void readIMU_SD() {
 void writeGPS_SD(String d1, String d2, String d3) {
    sdFile = SD.open("GPS_test.txt", FILE_WRITE); 
 
-    Serial.println("\n\nGPS_test!");
+    //Serial.println("\nGPS_test!");
 
    if (sdFile) { // if the file opened okay, write to it:
        sdFile.print(d1 + "," + d2 + "," + d3 + ",");
@@ -182,7 +168,7 @@ void writeSD_headers() {
 
     // if the file opened okay, write to it:
     if (sdFile) {
-        sdFile.print("Accel X, Accel Y, Accel Z, Gyro X, Gyro Y, Gyro Z, Magn X, Magn Y, Magn Z");
+        sdFile.print("Accel X, Accel Y, Accel Z, Gyro X, Gyro Y, Gyro Z, Magn X, Magn Y, Magn Z, ");
         sdFile.close();
     } 
     
@@ -196,7 +182,7 @@ void writeSD_headers() {
 
     // if the file opened okay, write to it:
     if (sdFile) {
-        sdFile.print("Time, Date, Satellites, Latitude, Longitude, Elevation");
+        sdFile.print("Time, Date, Satellites, Latitude, Longitude, Elevation, ");
         sdFile.close();
     } 
     
@@ -208,7 +194,7 @@ void writeSD_headers() {
 
 void setup() {
     Serial.println("CODE: main\n");
-    Serial.begin(115200); // imu.begin(115200);
+    Serial.begin(9600); // imu.begin(115200);                                               ** IMU Baud Rate
   
     // bluetooth.begin(9600);
     //   delay(100);
@@ -251,7 +237,7 @@ void setup() {
 
 
     // ****** GPS *****************************************************     GPS - setup
-    GPS.begin(9600);
+    GPS.begin(9600); // 9600
     GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
     GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
     GPS.sendCommand(PGCMD_ANTENNA); // Request updates on antenna status
@@ -263,17 +249,17 @@ void setup() {
     
     // ****** SD Card ******************************************************     SD card setup
     // Open serial communications and wait for port to open:
-    Serial.begin(9600);
+    Serial.begin(9600); // 9600
     while (!Serial) {
         ; // wait for serial port to connect.
     }
-    Serial.print("\n\nInitializing SD card...\n\n");
+    Serial.print("Initializing SD card...");
     if (!SD.begin(chipSelect)) {
         Serial.println("\n\nSD initialization failed\n\n");
         return;
     }
     writeSD_headers(); //writing headers to SD card
-    //Serial.println("SD initialization done.");
+    Serial.println("SD initialization done.\n");
 // *********************************************************************     SD card setup
 } // end of void setup()
 
@@ -284,8 +270,24 @@ void loop() {
     //     Serial.write(c);
     //   }
 
-    getIMU(); // get data from IMU
-    getGPS(); // get dat from GPS
+    char c = GPS.read(); // read data from the GPS in the 'main loop'
+
+    // if a sentence is received, we can check the checksum, parse it...
+    if (GPS.newNMEAreceived()) {
+        Serial.print(GPS.lastNMEA()); // this also sets the newNMEAreceived() flag to false
+        if (!GPS.parse(GPS.lastNMEA())) // this also sets the newNMEAreceived() flag to false
+            return; // we can fail to parse a sentence in which case we should just wait for anotherchar c = GPS.read();
+    } 
+
+    if (millis() - timer > 5000) {  //2000 // approximately every 2 seconds or so, print out the current stats
+        timer = millis(); // reset the gps_timer
+
+        getGPS(); // get dat from GPS
+        delay(2000); // wait babes
+
+        getIMU(); // get data from IMU
+        delay(2000);
+    }
 
     readIMU_SD();
     readGPS_SD();

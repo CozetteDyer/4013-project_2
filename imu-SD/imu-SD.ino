@@ -122,7 +122,7 @@ void setup() {
     // put your setup code here, to run once:
     Serial.println("CODE: imu-SD card unit test!\n\n");
 
-    Serial.begin(115200); 
+    Serial.begin(115200); // 115200
 
     // ****** IMU ********************************************************     IMU-setup
     bool accelerometer_success, magnetometer_success;
