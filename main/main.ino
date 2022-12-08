@@ -225,13 +225,13 @@ void loop() {
             return; // we can fail to parse a sentence in which case we should just wait for anotherchar c = GPS.read();
     } 
 
-    if (millis() - timer > 5000) {  //2000 // approximately every 2 seconds or so, print out the current stats
+    if (millis() - timer > 4000) {  //2000 // approximately every 2 seconds or so, print out the current stats
         timer = millis(); // reset the gps_timer
 
         getData(); // get dat from GPS
         delay(1000); // wait babes
     }
 
-    readSD();
+    //readSD();
 
 } // end of void loop()
