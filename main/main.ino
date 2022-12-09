@@ -28,6 +28,8 @@ String gps_longitude;
 String gps_latitude;
 String gps_satellites;
 String gps_altitude;
+String gps_data;
+String imu_data;
 uint32_t  timer = millis();
 
 const int rx = 34;
@@ -60,6 +62,8 @@ void getData () {
 
     /* Display the results in Celcius) */
     tempV = String(temp.temperature, 2); // 2 decimal places
+
+    imu_data = "\n" + accelString + "\n" + gyroString + "\n" + magnString + "\n" + "\ttemp = " + tempV + " °C";
     delay(1000);
     // --------------------------------------------------------------------------- GPS
     Serial.print("\nFix:\t"); Serial.print((int)GPS.fix);
@@ -67,18 +71,19 @@ void getData () {
     if (GPS.satellites) { // .fix
         gps_time = String(GPS.hour) + ":" + String(GPS.minute) + ":" + String(GPS.seconds);
         gps_date = String(GPS.month) + "/" + String(GPS.day) + "/" + String(GPS.year);
-        Serial.println("------------------------------------------------------------------------");
-        Serial.println("\tTIME:" + gps_time + "\t|\tDATE:" + gps_date);
-
         gps_satellites = String((int)GPS.satellites);
         gps_latitude = String(GPS.latitude) + String(GPS.lat);
         gps_longitude = String(GPS.longitude) + String(GPS.lon);
-        gps_altitude = String(GPS.altitude);
-        Serial.println("\tSAT: " + gps_satellites + +"\t\t|\tALT: " + gps_altitude + "\n\tLAT: " + gps_latitude +"\t|\tLON:\t" + gps_longitude);
+        gps_altitude = String(GPS.altitude);        
+        
+        gps_data = "\tTIME:" + gps_time + "\t|\tDATE:" + gps_date + "\n" +"\tSAT: " + gps_satellites + +"\t\t|\tALT: " + gps_altitude + "\n\tLAT: " + gps_latitude +"\t|\tLON:\t" + gps_longitude;
+                
+        Serial.println("------------------------------------------------------------------------");
+        Serial.println(gps_data);
 
     } // end of (GPS.fix) loop
 
-    Serial.println("\n" + accelString + "\n" + gyroString + "\n" + magnString + "\n" + "\ttemp = " + tempV + " °C");
+    Serial.println(imu_data);
     Serial.println("------------------------------------------------------------------------");
 
     // ------------------------------------------------------------------------------------------- write to SD 
@@ -207,11 +212,6 @@ void setup() {
 } // end of void setup()
 
 void loop() {
-    //   if (bluetooth.available())
-    //   {
-    //     char c = (char)bluetooth.read();
-    //     Serial.write(c);
-    //   }
 
     char c = GPS.read(); // read data from the GPS in the 'main loop'
 
