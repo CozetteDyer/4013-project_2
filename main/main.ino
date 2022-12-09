@@ -30,8 +30,8 @@ String gps_satellites;
 String gps_altitude;
 uint32_t  timer = millis();
 
-const int rx = 0;
-const int tx =  1;
+const int rx = 34;
+const int tx =  35;
 SoftwareSerial bluetooth(rx, tx);
 
 void getData () {
@@ -81,7 +81,7 @@ void getData () {
     Serial.println("\n" + accelString + "\n" + gyroString + "\n" + magnString + "\n" + "\ttemp = " + tempV + " °C");
     Serial.println("------------------------------------------------------------------------");
 
-// ------------------------------------------------------------------------------------------- write to SD 
+    // ------------------------------------------------------------------------------------------- write to SD 
     sdFile = SD.open("data.txt", FILE_WRITE); // change file name ***
     //Serial.print("Writing to data.txt. . .");
 
@@ -123,7 +123,7 @@ void writeSD_headers() {
 
     SD.remove("data.txt"); // revomes previous data file
     
-    sdFile = SD.open("data.txt", FILE_WRITE); // change file name ***
+    sdFile = SD.open("data.txt", FILE_WRITE);
     //Serial.print("Writing to data.txt. . .");
 
     // if the file opened okay, write to it:
@@ -140,12 +140,9 @@ void writeSD_headers() {
 
 void setup() {
     Serial.println("CODE: main\n");
-    Serial.begin(9600); // imu.begin(115200);                                               ** IMU Baud Rate
-  
-    // bluetooth.begin(9600);
-    //   delay(100);
-    //   bluetooth.println("Let's Start!");
-    //   delay(100);
+    Serial.begin(9600); 
+    bluetooth.begin(9600);
+    delay(100);
 
     // ****** IMU ********************************************************     IMU-setup
     bool accelerometer_success, magnetometer_success;
