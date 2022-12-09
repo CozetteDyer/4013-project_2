@@ -212,9 +212,6 @@ void setup() {
     // ****** SD Card ******************************************************     SD card setup
     // Open serial communications and wait for port to open:
     Serial.begin(9600); // 9600
-    while (!Serial) {
-        ; // wait for serial port to connect.
-    }
     Serial.print("Initializing SD card...");
     if (!SD.begin(chipSelect)) {
         Serial.println("\n\nSD initialization failed\n\n");
