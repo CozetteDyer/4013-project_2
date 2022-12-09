@@ -67,8 +67,6 @@ void getData () {
     imu_data = "\n" + accelString + "\n" + gyroString + "\n" + magnString + "\n" + "\ttemp = " + tempV + " °C";
     delay(1000); // wait for mme 
     // --------------------------------------------------------------------------- GPS
-    Serial.print("\nFix:\t"); Serial.print((int)GPS.fix);
-    Serial.print("\tQuality:\t"); Serial.println((int)GPS.fixquality);
     if (GPS.satellites) { // .fix
         gps_time = String(GPS.hour) + ":" + String(GPS.minute) + ":" + String(GPS.seconds);
         gps_date = String(GPS.month) + "/" + String(GPS.day) + "/" + String(GPS.year);
@@ -78,14 +76,17 @@ void getData () {
         gps_altitude = String(GPS.altitude);        
         
         gps_data = "\tTIME:" + gps_time + "\t|\tDATE:" + gps_date + "\n" +"\tSAT: " + gps_satellites + +"\t\t|\tALT: " + gps_altitude + "\n\tLAT: " + gps_latitude +"\t|\tLON:\t" + gps_longitude;
-                
-        Serial.println("------------------------------------------------------------------------");
-        Serial.println(gps_data);
-
     } // end of (GPS.fix) loop
 
-    Serial.println(imu_data);
-    Serial.println("------------------------------------------------------------------------");
+    if(Serial.available()) {
+        Serial.print("\nFix:\t"); Serial.print((int)GPS.fix);
+        Serial.print("\tQuality:\t"); Serial.println((int)GPS.fixquality);
+        Serial.println("------------------------------------------------------------------------");
+        Serial.println(gps_data);
+        Serial.println(imu_data);
+        Serial.println("------------------------------------------------------------------------");
+    }        
+    
 
     // ------------------------------------------------------------------------------------------- write to SD 
     sdFile = SD.open("data.txt", FILE_WRITE); // change file name ***
@@ -158,7 +159,7 @@ void writeSD_headers() {
 } // end of write to SD card function --- HEADERS!!
 
 void setup() {
-    Serial.println("CODE: main\n");
+    //Serial.println("CODE: main\n");
     Serial.begin(9600); 
     bluetooth.begin(9600);
     delay(100);
@@ -215,13 +216,13 @@ void setup() {
     while (!Serial) {
         ; // wait for serial port to connect.
     }
-    Serial.print("Initializing SD card...");
+    //Serial.print("Initializing SD card...");
     if (!SD.begin(chipSelect)) {
         Serial.println("\n\nSD initialization failed\n\n");
         return;
     }
     writeSD_headers(); //writing headers to SD card
-    Serial.println("SD initialization done.\n");
+    //Serial.println("SD initialization done.\n");
 // *********************************************************************     SD card setup
 } // end of void setup()
 
@@ -231,7 +232,7 @@ void loop() {
 
     // if a sentence is received, we can check the checksum, parse it...
     if (GPS.newNMEAreceived()) {
-        Serial.print(GPS.lastNMEA()); // this also sets the newNMEAreceived() flag to false
+        //Serial.print(GPS.lastNMEA()); // this also sets the newNMEAreceived() flag to false
         if (!GPS.parse(GPS.lastNMEA())) // this also sets the newNMEAreceived() flag to false
             return; // we can fail to parse a sentence in which case we should just wait for anotherchar c = GPS.read();
     } 
